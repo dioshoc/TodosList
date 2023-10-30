@@ -1,0 +1,47 @@
+version: '3'
+services:
+  nodejs-app:
+    image: node:18
+    container_name: full-node
+    volumes:
+      - ./server:/server
+    ports:
+      - ${NODE_PORT}:5000
+    environment:
+      - HOST=${HOST}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+    depends_on:
+      - mysql-db
+    command: sh -c "cd /server && npm install && npm run dev"
+    working_dir: /server
+    networks:
+      - app-network
+
+  react-frontend:
+    image: node:18
+    container_name: full-front
+    volumes:
+      - ./client:/client
+    ports:
+      - ${FRONTEND_PORT}:3000
+    command: sh -c "cd /client && npm install && npm run dev --host"
+    working_dir: /client
+    networks:
+      - app-network
+
+  mysql-db:
+    image: mysql:latest
+    container_name: full-db-mysql
+    environment:
+      - MYSQL_ROOT_USER=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+    ports:
+      - "3306:3306"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
