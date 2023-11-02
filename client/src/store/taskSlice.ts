@@ -1,8 +1,10 @@
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
-import type { ITask } from '@/types/task';
+import { useFetch } from '@/hooks/useFetch';
+import type { ITask, ITaskReq } from '@/types/task';
 import { ETaskType } from '@/types/task';
+import eventBus from '@utils/eventBus';
 
 export type ITaskSliceState = {
   error: any;
@@ -11,23 +13,36 @@ export type ITaskSliceState = {
 };
 
 const fetchTasks = createAsyncThunk('tasks/fetchTasks', async () =>
-  fetch('http://localhost:5000/tasks', {
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-    },
-  })
-    .then(async (res) => res.json())
-    .catch((err) => {
-      console.log(err);
-      throw err;
+  useFetch('GET', 'http://localhost:5000/tasks')
+);
+
+const addTask = createAsyncThunk(
+  'tasks/addTask',
+  async ({ title, description }: ITaskReq) =>
+    useFetch('POST', 'http://localhost:5000/addTask', {
+      title,
+      description,
+      type: ETaskType[ETaskType.default],
     })
+);
+
+const editTask = createAsyncThunk(
+  'tasks/editTask',
+  async ({ id, title, description }: ITaskReq) =>
+    useFetch('PATCH', `http://localhost:5000/editTask/${id}`, {
+      title,
+      description,
+    })
+);
+
+const removeTask = createAsyncThunk('tasks/addTask', async (id: number) =>
+  useFetch('DELETE', `http://localhost:5000/removeTask/${id}`)
 );
 
 const taskSlice = createSlice({
   name: 'tasks',
   extraReducers: (builder) => {
-    builder.addCase(fetchTasks.pending, (state, action) => {
+    builder.addCase(fetchTasks.pending, (state) => {
       state.status = true;
     });
     builder.addCase(fetchTasks.fulfilled, (state, action) => {
@@ -38,6 +53,24 @@ const taskSlice = createSlice({
       state.status = false;
       state.error = action.payload;
     });
+    builder.addCase(addTask.pending, (state) => {
+      state.status = true;
+    });
+    builder.addCase(addTask.fulfilled, (state) => {
+      state.status = false;
+      eventBus.emit('closeModal');
+    });
+    builder.addCase(addTask.rejected, (state, action) => {
+      state.status = false;
+      state.error = action.payload;
+    });
+    builder.addCase(editTask.pending, (state) => {
+      state.status = true;
+    });
+    builder.addCase(editTask.fulfilled, (state) => {
+      state.status = false;
+      eventBus.emit('closeModal');
+    });
   },
   initialState: {
     error: null,
@@ -45,14 +78,6 @@ const taskSlice = createSlice({
     taskList: [],
   } as ITaskSliceState,
   reducers: {
-    addTask: (state, action: PayloadAction<ITask>) => {
-      state.taskList.push({
-        id: action.payload.id,
-        title: action.payload.title,
-        description: action.payload.description,
-        type: ETaskType.default,
-      });
-    },
     checkTask: (state, action: PayloadAction<number>) => {
       const currentTask = state.taskList.find(
         (task) => (task.id = action.payload)
@@ -61,7 +86,6 @@ const taskSlice = createSlice({
         currentTask.type = ETaskType.check;
       }
     },
-    editTask: () => {},
     removeTask: (state, action: PayloadAction<number>) => {
       state.taskList = state.taskList.filter(
         (task) => task.id !== action.payload
@@ -72,7 +96,10 @@ const taskSlice = createSlice({
 
 export const taskSliceAction = taskSlice.actions;
 export const taskSliceAsyncAction = {
+  addTask,
+  editTask,
   fetchTasks,
+  removeTask,
 };
 
 export default taskSlice.reducer;

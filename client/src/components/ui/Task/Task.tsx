@@ -1,6 +1,6 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 
-import { useActions } from '@/hooks/useActions';
+import { useActions, useAsyncActions } from '@/hooks/useActions';
 import { EModalList } from '@/types/modalList';
 import type { ITask } from '@/types/task';
 import { ETaskType } from '@/types/task';
@@ -29,9 +29,10 @@ const Task = ({
   description = '',
   type = ETaskType.default,
 }: ITask) => {
-  const { checkTask, removeTask } = useActions('taskSlice');
+  const { checkTask } = useActions('taskSlice');
+  const { removeTask } = useAsyncActions('taskSlice');
 
-  const editTask = useCallback((id: number) => {
+  const editTask = (id: number) => {
     eventBus.emit('openModal', {
       arg: {
         task: {
@@ -42,7 +43,7 @@ const Task = ({
       },
       type: EModalList.EditTask,
     });
-  }, []);
+  };
 
   const Buttons = [
     type !== ETaskType.check && {
@@ -50,7 +51,7 @@ const Task = ({
       icon: CheckIcon,
     },
     {
-      action: editTask,
+      action: () => editTask(id),
       icon: EditIcon,
     },
     {

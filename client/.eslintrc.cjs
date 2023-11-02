@@ -22,6 +22,7 @@ module.exports = {
     'jsx-a11y/no-noninteractive-tabindex': 'off',
     'import/no-unresolved': 'error',
     '@typescript-eslint/no-explicit-any': 'off',
+    'indent': ['error', 2],
   },
   settings: {
     'import/parsers': {
@@ -39,5 +40,4 @@ module.exports = {
     },
   },
   overrides: [],
-
 };

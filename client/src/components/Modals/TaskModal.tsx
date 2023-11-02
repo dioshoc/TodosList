@@ -1,7 +1,7 @@
 import type { SubmitHandler } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 
-import { useActions } from '@/hooks/useActions';
+import { useAsyncActions } from '@/hooks/useActions';
 import type { ITask } from '@/types/task';
 import Button from '@ui/Button';
 import Input from '@ui/Input';
@@ -27,13 +27,14 @@ export const TaskModal = ({ task }: ITaskModal) => {
     },
   });
 
-  const { addTask } = useActions('taskSlice');
+  const { addTask, editTask } = useAsyncActions('taskSlice');
 
   const submit: SubmitHandler<MyForm> = (data) => {
-    addTask({
-      id: Date.now(),
-      ...data,
-    });
+    if (task) {
+      editTask({ ...data, id: task.id });
+    } else {
+      addTask(data);
+    }
   };
 
   return (
