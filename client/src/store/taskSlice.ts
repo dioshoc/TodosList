@@ -78,7 +78,15 @@ const taskSlice = createSlice({
     taskList: [],
   } as ITaskSliceState,
   reducers: {
-    checkTask: (state, action: PayloadAction<number>) => {
+    handleAddTask: (state, action) => {
+      state.taskList.push({
+        id: Date.now(),
+        title: action.payload.title,
+        description: action.payload.description,
+        type: ETaskType.default,
+      });
+    },
+    handleCheckTask: (state, action: PayloadAction<number>) => {
       const currentTask = state.taskList.find(
         (task) => (task.id = action.payload)
       );
@@ -86,7 +94,7 @@ const taskSlice = createSlice({
         currentTask.type = ETaskType.check;
       }
     },
-    removeTask: (state, action: PayloadAction<number>) => {
+    handleRemoveTask: (state, action: PayloadAction<number>) => {
       state.taskList = state.taskList.filter(
         (task) => task.id !== action.payload
       );

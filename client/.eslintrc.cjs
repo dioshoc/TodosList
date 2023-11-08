@@ -23,6 +23,7 @@ module.exports = {
     'import/no-unresolved': 'error',
     '@typescript-eslint/no-explicit-any': 'off',
     'indent': ['error', 2],
+    'sort-keys': ['off', 'asc', { 'caseSensitive': false, 'natural': true }],
   },
   settings: {
     'import/parsers': {

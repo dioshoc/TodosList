@@ -1,11 +1,9 @@
-import React, { useEffect, useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import React, { useMemo } from 'react';
 
-import { useAsyncActions } from '@/hooks/useActions';
-import type { RootState } from '@/store';
 import { EModalList } from '@/types/modalList';
 import type { ITask } from '@/types/task';
 import CirclePlusIcon from '@assets/icons/circlePlusIcon';
+import { useGetTasksQuery } from '@store/tasksApi';
 import Button from '@ui/Button';
 import { Modal } from '@ui/Modal/Modal';
 import Task from '@ui/Task';
@@ -20,16 +18,11 @@ const classes = {
 };
 
 const App = () => {
-  const { taskList } = useSelector((state: RootState) => state.taskReducer);
-  const { fetchTasks } = useAsyncActions('taskSlice');
-
-  useEffect(() => {
-    fetchTasks();
-  }, []);
+  const { data = [], isLoading } = useGetTasksQuery();
 
   const renderTaskList = useMemo(() => {
-    if (taskList.length) {
-      return taskList.map((task: ITask) => (
+    if (data.length) {
+      return data.map((task: ITask) => (
         <Task
           id={task.id}
           key={task.id}
@@ -46,7 +39,7 @@ const App = () => {
         <CirclePlusIcon className="ml-4" />
       </div>
     );
-  }, [taskList]);
+  }, [data]);
 
   const openModal = () => {
     eventBus.emit('openModal', { type: EModalList.CreateTask });
@@ -55,7 +48,9 @@ const App = () => {
   return (
     <main className={classes.main}>
       <h1 className={classes.title}>To-do List</h1>
-      <section className={classes.taskList}>{renderTaskList}</section>
+      <section className={classes.taskList}>
+        {isLoading ? <div>Loading...</div> : renderTaskList}
+      </section>
       <Button
         onClick={openModal}
         variant="text"
